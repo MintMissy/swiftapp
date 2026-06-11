@@ -3,10 +3,14 @@ import SwiftUI
 struct BookingsView: View {
     @EnvironmentObject var bookingStore: BookingStore
     @State private var selectedTab: BookingStatus = .upcoming
-    @State private var selectedBookingForDetail: Booking? = nil
     
     var filteredBookings: [Booking] {
-        bookingStore.bookings.filter { $0.status == selectedTab }
+        let filtered = bookingStore.bookings.filter { $0.status == selectedTab }
+        if selectedTab == .upcoming {
+            return filtered.sorted { $0.checkInDate < $1.checkInDate }
+        } else {
+            return filtered.sorted { $0.checkInDate > $1.checkInDate }
+        }
     }
     
     var body: some View {
@@ -26,7 +30,7 @@ struct BookingsView: View {
                         LazyVStack(spacing: 16) {
                             ForEach(filteredBookings) { booking in
                                 BookingCardView(booking: booking) {
-                                    selectedBookingForDetail = booking
+                                    bookingStore.selectedBookingForDetail = booking
                                 }
                             }
                         }
@@ -36,7 +40,7 @@ struct BookingsView: View {
             }
             .navigationTitle("Rezerwacje")
             .background(Color(.systemGroupedBackground))
-            .sheet(item: $selectedBookingForDetail) { booking in
+            .sheet(item: $bookingStore.selectedBookingForDetail) { booking in
                 BookingDetailView(bookingId: booking.id)
             }
         }

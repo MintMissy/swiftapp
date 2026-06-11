@@ -45,6 +45,13 @@ struct RoomServiceView: View {
         !quantities.values.contains { $0 > 0 }
     }
     
+    var isBookingInactive: Bool {
+        if let booking = bookingStore.bookings.first(where: { $0.id == bookingId }) {
+            return booking.status == .past
+        }
+        return true
+    }
+    
     var body: some View {
         NavigationStack {
             ZStack {
@@ -166,12 +173,12 @@ struct RoomServiceView: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(cartIsEmpty ? Color.gray : Color.indigo)
+                    .background((cartIsEmpty || isBookingInactive) ? Color.gray : Color.indigo)
                     .cornerRadius(12)
                     .padding(.horizontal)
                     .padding(.bottom, 16)
             }
-            .disabled(cartIsEmpty)
+            .disabled(cartIsEmpty || isBookingInactive)
         }
         .background(Color(.systemBackground))
     }

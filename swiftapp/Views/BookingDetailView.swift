@@ -13,6 +13,14 @@ struct BookingDetailView: View {
         bookingStore.bookings.first(where: { $0.id == bookingId }) ?? MockData.bookings[0]
     }
     
+    var isBookingActiveByDate: Bool {
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: booking.checkInDate)
+        let end = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: booking.checkOutDate)) ?? booking.checkOutDate
+        let now = Date()
+        return now >= start && now < end
+    }
+    
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -123,18 +131,20 @@ struct BookingDetailView: View {
                 .cornerRadius(12)
             }
             
-            Button(action: { isShowingRoomService = true }) {
-                HStack {
-                    Image(systemName: "fork.knife")
-                    Text("Room Service")
+            if isBookingActiveByDate {
+                Button(action: { isShowingRoomService = true }) {
+                    HStack {
+                        Image(systemName: "fork.knife")
+                        Text("Room Service")
+                    }
+                    .font(.subheadline)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(Color.purple)
+                    .cornerRadius(12)
                 }
-                .font(.subheadline)
-                .fontWeight(.bold)
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
-                .background(Color.purple)
-                .cornerRadius(12)
             }
         }
     }

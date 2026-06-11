@@ -257,6 +257,8 @@ struct BookingCheckoutView: View {
         )
         bookingStore.addBooking(booking)
         dismiss()
+        bookingStore.selectedTab = 1
+        bookingStore.selectedBookingForDetail = booking
     }
 }
 

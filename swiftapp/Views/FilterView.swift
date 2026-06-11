@@ -73,25 +73,29 @@ struct FilterView: View {
             Text("Minimalna ocena")
                 .font(.headline)
             
-            HStack(spacing: 16) {
-                ForEach(Array(stride(from: 3.0, through: 5.0, by: 0.5)), id: \.self) { rating in
-                    Button(action: {
-                        localConfig.minRating = localConfig.minRating == rating ? 0.0 : rating
-                    }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "star.fill")
-                                .foregroundColor(localConfig.minRating >= rating ? .yellow : .gray)
-                            Text(String(format: "%.1f+", rating))
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 16) {
+                    ForEach(Array(stride(from: 3.0, through: 5.0, by: 0.5)), id: \.self) { rating in
+                        Button(action: {
+                            localConfig.minRating = localConfig.minRating == rating ? 0.0 : rating
+                        }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "star.fill")
+                                    .foregroundColor(localConfig.minRating >= rating ? .yellow : .gray)
+                                Text(String(format: "%.1f+", rating))
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(localConfig.minRating >= rating ? Color.indigo.opacity(0.1) : Color(.systemGray6))
+                            .foregroundColor(localConfig.minRating >= rating ? .indigo : .primary)
+                            .cornerRadius(8)
                         }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(localConfig.minRating >= rating ? Color.indigo.opacity(0.1) : Color(.systemGray6))
-                        .foregroundColor(localConfig.minRating >= rating ? .indigo : .primary)
-                        .cornerRadius(8)
                     }
                 }
+                .padding(.horizontal, 2)
+                .padding(.vertical, 4)
             }
         }
     }

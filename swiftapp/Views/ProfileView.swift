@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ProfileView: View {
     @EnvironmentObject var bookingStore: BookingStore
+    @AppStorage("isDarkMode") private var isDarkMode = false
     
     private let basePoints = 2000
     
@@ -114,23 +115,21 @@ struct ProfileView: View {
                 }
                 
                 Section("Ustawienia i pomoc") {
-                    Label("Dane osobowe", systemImage: "person.text.rectangle")
-                    Label("Metody płatności", systemImage: "creditcard")
-                    Label("Powiadomienia", systemImage: "bell")
-                    Label("Pomoc i wsparcie", systemImage: "questionmark.circle")
+                    Toggle(isOn: $isDarkMode) {
+                        Label("Tryb ciemny", systemImage: "moon.fill")
+                    }
+                    .tint(.indigo)
+                    
+                    NavigationLink(destination: ContactFormView()) {
+                        Label("Pomoc i wsparcie", systemImage: "questionmark.circle")
+                    }
                 }
                 
                 Section("Aplikacja") {
                     HStack {
                         Text("Wersja")
-                        Spacer()
+                        Spacer()    
                         Text("0.86")
-                            .foregroundColor(.secondary)
-                    }
-                    HStack {
-                        Text("Uczelnia")
-                        Spacer()
-                        Text("WSB Poznań")
                             .foregroundColor(.secondary)
                     }
                 }

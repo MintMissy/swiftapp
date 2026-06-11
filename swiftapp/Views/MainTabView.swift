@@ -1,11 +1,11 @@
 import SwiftUI
 
 struct MainTabView: View {
-    @State private var selectedTab = 0
     @StateObject private var bookingStore = BookingStore()
+    @AppStorage("isDarkMode") private var isDarkMode = false
     
     var body: some View {
-        TabView(selection: $selectedTab) {
+        TabView(selection: $bookingStore.selectedTab) {
             ExploreView()
                 .tabItem {
                     Label("Eksploruj", systemImage: "magnifyingglass")
@@ -26,6 +26,7 @@ struct MainTabView: View {
         }
         .tint(.indigo)
         .environmentObject(bookingStore)
+        .preferredColorScheme(isDarkMode ? .dark : .light)
     }
 }
 
