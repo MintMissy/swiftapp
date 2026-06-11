@@ -282,5 +282,5 @@ struct BookingDetailView: View {
 }
 
 #Preview {
-    BookingDetailView(bookingId: MockData.bookings[0].id)
+    BookingDetailView(bookingId: BookingsMockData.bookings[0].id)
 }

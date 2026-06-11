@@ -6,7 +6,7 @@ class ContactFormViewModel: ObservableObject {
     @Published var message = ""
     @Published var isShowingAlert = false
     
-    let subjects = ["Problem z rezerwacją", "Płatności i faktury", "Uwagi do pobytu", "Inne"]
+    let subjects = ProfileMockData.contactSubjects
     
     var isValid: Bool {
         !subject.isEmpty && !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty

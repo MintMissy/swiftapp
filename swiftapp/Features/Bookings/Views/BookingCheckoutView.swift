@@ -199,5 +199,5 @@ struct BookingCheckoutView: View {
 }
 
 #Preview {
-    BookingCheckoutView(hotel: MockData.hotels[0], room: MockData.hotels[0].rooms[0])
+    BookingCheckoutView(hotel: ExploreMockData.hotels[0], room: ExploreMockData.hotels[0].rooms[0])
 }

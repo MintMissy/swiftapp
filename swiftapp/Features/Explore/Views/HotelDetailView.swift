@@ -203,6 +203,6 @@ struct HotelDetailView: View {
 
 #Preview {
     NavigationStack {
-        HotelDetailView(hotel: MockData.hotels[0])
+        HotelDetailView(hotel: ExploreMockData.hotels[0])
     }
 }

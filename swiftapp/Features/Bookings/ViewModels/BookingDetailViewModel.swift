@@ -21,7 +21,7 @@ class BookingDetailViewModel: ObservableObject {
         if let found = bookingService.bookings.first(where: { $0.id == bookingId }) {
             self.booking = found
         } else {
-            self.booking = MockData.bookings[0]
+            self.booking = BookingsMockData.bookings[0]
         }
         
         bookingService.$bookings

@@ -16,7 +16,7 @@ class ExploreViewModel: ObservableObject {
     @Published var sortOption: SortOption = .rating
     
     var filteredHotels: [Hotel] {
-        let baseFiltered = MockData.hotels.filter { hotel in
+        let baseFiltered = ExploreMockData.hotels.filter { hotel in
             let matchesSearch = searchText.isEmpty ||
                 hotel.name.localizedCaseInsensitiveContains(searchText) ||
                 hotel.location.localizedCaseInsensitiveContains(searchText)

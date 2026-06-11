@@ -8,7 +8,7 @@ class UserDefaultsBookingRepository: BookingRepositoryProtocol {
            let decoded = try? JSONDecoder().decode([Booking].self, from: data) {
             return decoded
         } else {
-            return MockData.bookings
+            return BookingsMockData.bookings
         }
     }
     
