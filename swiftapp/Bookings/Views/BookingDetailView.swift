@@ -4,10 +4,9 @@ import MapKit
 struct BookingDetailView: View {
     @StateObject private var viewModel: BookingDetailViewModel
     @Environment(\.dismiss) var dismiss
-    @EnvironmentObject var bookingService: BookingService
     
-    init(bookingId: UUID, bookingService: BookingService) {
-        _viewModel = StateObject(wrappedValue: BookingDetailViewModel(bookingId: bookingId, bookingService: bookingService))
+    init(bookingId: UUID) {
+        _viewModel = StateObject(wrappedValue: BookingDetailViewModel(bookingId: bookingId))
     }
     
     var body: some View {
@@ -44,7 +43,7 @@ struct BookingDetailView: View {
                 DigitalKeyView(hotelName: viewModel.booking.hotelName, roomName: viewModel.booking.roomName)
             }
             .sheet(isPresented: $viewModel.isShowingRoomService) {
-                RoomServiceView(bookingId: viewModel.booking.id, hotelName: viewModel.booking.hotelName, roomName: viewModel.booking.roomName, bookingService: bookingService)
+                RoomServiceView(bookingId: viewModel.booking.id, hotelName: viewModel.booking.hotelName, roomName: viewModel.booking.roomName)
             }
         }
     }
@@ -283,7 +282,5 @@ struct BookingDetailView: View {
 }
 
 #Preview {
-    let service = BookingService()
-    return BookingDetailView(bookingId: MockData.bookings[0].id, bookingService: service)
-        .environmentObject(service)
+    BookingDetailView(bookingId: MockData.bookings[0].id)
 }

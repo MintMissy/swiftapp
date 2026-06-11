@@ -4,14 +4,14 @@ struct BookingCheckoutView: View {
     @StateObject private var viewModel: BookingCheckoutViewModel
     @Environment(\.dismiss) var dismiss
     
-    init(hotel: Hotel, room: Room, bookingService: BookingService) {
-        _viewModel = StateObject(wrappedValue: BookingCheckoutViewModel(hotel: hotel, room: room, bookingService: bookingService))
+    init(hotel: Hotel, room: Room) {
+        _viewModel = StateObject(wrappedValue: BookingCheckoutViewModel(hotel: hotel, room: room))
     }
     
     var body: some View {
         NavigationStack {
             ZStack {
-                if viewModel.isSuccess {
+                if case .success = viewModel.state {
                     successView
                 } else {
                     Form {
@@ -98,14 +98,14 @@ struct BookingCheckoutView: View {
                     }
                 }
                 
-                if viewModel.isLoading {
+                if case .loading = viewModel.state {
                     loadingOverlay
                 }
             }
             .navigationTitle("Rezerwacja pokoju")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                if !viewModel.isSuccess {
+                if case .idle = viewModel.state {
                     ToolbarItem(placement: .topBarLeading) {
                         Button("Anuluj") {
                             dismiss()
@@ -199,6 +199,5 @@ struct BookingCheckoutView: View {
 }
 
 #Preview {
-    let service = BookingService()
-    return BookingCheckoutView(hotel: MockData.hotels[0], room: MockData.hotels[0].rooms[0], bookingService: service)
+    BookingCheckoutView(hotel: MockData.hotels[0], room: MockData.hotels[0].rooms[0])
 }

@@ -9,8 +9,8 @@ class BookingsViewModel: ObservableObject {
     private let bookingService: BookingService
     private var cancellables = Set<AnyCancellable>()
     
-    init(bookingService: BookingService) {
-        self.bookingService = bookingService
+    init() {
+        self.bookingService = ServiceLocator.shared.resolve()
         
         Publishers.CombineLatest($selectedTab, bookingService.$bookings)
             .map { tab, bookings in

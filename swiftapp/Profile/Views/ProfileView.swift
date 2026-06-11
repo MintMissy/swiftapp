@@ -3,8 +3,8 @@ import SwiftUI
 struct ProfileView: View {
     @StateObject private var viewModel: ProfileViewModel
     
-    init(bookingService: BookingService) {
-        _viewModel = StateObject(wrappedValue: ProfileViewModel(bookingService: bookingService))
+    init() {
+        _viewModel = StateObject(wrappedValue: ProfileViewModel())
     }
     
     var body: some View {
@@ -89,6 +89,5 @@ struct ProfileView: View {
 }
 
 #Preview {
-    let service = BookingService()
-    return ProfileView(bookingService: service)
+    ProfileView()
 }

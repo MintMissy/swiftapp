@@ -12,14 +12,14 @@ struct RoomServiceView: View {
     @StateObject private var viewModel: RoomServiceViewModel
     @Environment(\.dismiss) var dismiss
     
-    init(bookingId: UUID, hotelName: String, roomName: String, bookingService: BookingService) {
-        _viewModel = StateObject(wrappedValue: RoomServiceViewModel(bookingId: bookingId, hotelName: hotelName, roomName: roomName, bookingService: bookingService))
+    init(bookingId: UUID, hotelName: String, roomName: String) {
+        _viewModel = StateObject(wrappedValue: RoomServiceViewModel(bookingId: bookingId, hotelName: hotelName, roomName: roomName))
     }
     
     var body: some View {
         NavigationStack {
             ZStack {
-                if viewModel.isSuccess {
+                if case .success = viewModel.state {
                     successView
                 } else {
                     VStack {
@@ -71,15 +71,15 @@ struct RoomServiceView: View {
                     }
                 }
                 
-                if viewModel.isLoading {
+                if case .loading = viewModel.state {
                     loadingOverlay
                 }
             }
             .navigationTitle("Room Service")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                if !viewModel.isSuccess {
-                    ToolbarItem(placement: .topBarTrailing) {
+                if case .idle = viewModel.state {
+                    ToolbarItem(placement: .topBarLeading) {
                         Button("Anuluj") {
                             dismiss()
                         }
@@ -209,6 +209,5 @@ struct RoomServiceView: View {
 }
 
 #Preview {
-    let service = BookingService()
-    return RoomServiceView(bookingId: UUID(), hotelName: "Grand Poznań Hotel & Spa", roomName: "Pokój Standard Double", bookingService: service)
+    RoomServiceView(bookingId: UUID(), hotelName: "Hotel Włoski", roomName: "Pokój Deluxe")
 }

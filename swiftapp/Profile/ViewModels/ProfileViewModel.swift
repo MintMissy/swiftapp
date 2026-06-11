@@ -15,8 +15,8 @@ class ProfileViewModel: ObservableObject {
     
     private let basePoints = 2000
     
-    init(bookingService: BookingService) {
-        self.bookingService = bookingService
+    init() {
+        self.bookingService = ServiceLocator.shared.resolve()
         self.isDarkMode = UserDefaults.standard.bool(forKey: "isDarkMode")
         
         bookingService.$bookings

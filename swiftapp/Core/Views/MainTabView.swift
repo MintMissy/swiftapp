@@ -1,31 +1,30 @@
 import SwiftUI
 
 struct MainTabView: View {
-    @StateObject private var bookingService = BookingService()
+    @StateObject private var viewModel = MainTabViewModel()
     @AppStorage("isDarkMode") private var isDarkMode = false
     
     var body: some View {
-        TabView(selection: $bookingService.selectedTab) {
+        TabView(selection: $viewModel.selectedTab) {
             ExploreView()
                 .tabItem {
                     Label("Eksploruj", systemImage: "magnifyingglass")
                 }
                 .tag(0)
             
-            BookingsView(bookingService: bookingService)
+            BookingsView()
                 .tabItem {
                     Label("Rezerwacje", systemImage: "calendar")
                 }
                 .tag(1)
             
-            ProfileView(bookingService: bookingService)
+            ProfileView()
                 .tabItem {
                     Label("Profil", systemImage: "person")
                 }
                 .tag(2)
         }
         .tint(.indigo)
-        .environmentObject(bookingService)
         .preferredColorScheme(isDarkMode ? .dark : .light)
     }
 }

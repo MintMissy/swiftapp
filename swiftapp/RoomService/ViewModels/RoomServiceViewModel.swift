@@ -9,8 +9,8 @@ class RoomServiceViewModel: ObservableObject {
     
     @Published var selectedCategory = "Jedzenie"
     @Published var quantities: [UUID: Int] = [:]
-    @Published var isLoading = false
-    @Published var isSuccess = false
+    
+    @Published var state: ViewState<Void> = .idle
     
     let menuItems = [
         ServiceItem(name: "Burger wołowy z frytkami", category: "Jedzenie", price: 55.0, icon: "fork.knife"),
@@ -23,11 +23,11 @@ class RoomServiceViewModel: ObservableObject {
         ServiceItem(name: "Sprzątanie pokoju", category: "Usługi", price: 0.0, icon: "sparkles")
     ]
     
-    init(bookingId: UUID, hotelName: String, roomName: String, bookingService: BookingService) {
+    init(bookingId: UUID, hotelName: String, roomName: String) {
         self.bookingId = bookingId
         self.hotelName = hotelName
         self.roomName = roomName
-        self.bookingService = bookingService
+        self.bookingService = ServiceLocator.shared.resolve()
     }
     
     var filteredItems: [ServiceItem] {
@@ -68,10 +68,13 @@ class RoomServiceViewModel: ObservableObject {
     }
     
     func submitOrder() {
-        isLoading = true
+        guard !quantities.isEmpty else { return }
+        
+        state = .loading
+        
+        // Symulacja API
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
             guard let self = self else { return }
-            self.isLoading = false
             
             let orderedItems = self.menuItems.compactMap { item -> RoomServiceOrderItem? in
                 let qty = self.quantities[item.id] ?? 0
@@ -88,7 +91,7 @@ class RoomServiceViewModel: ObservableObject {
             )
             
             self.bookingService.addRoomServiceOrder(to: self.bookingId, order: newOrder)
-            self.isSuccess = true
+            self.state = .success(())
         }
     }
 }

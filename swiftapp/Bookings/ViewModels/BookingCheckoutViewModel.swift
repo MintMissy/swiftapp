@@ -11,13 +11,12 @@ class BookingCheckoutViewModel: ObservableObject {
     @Published var guestName = "Jan Kowalski"
     @Published var guestEmail = "jan.kowalski@student.wsb.poznan.pl"
     
-    @Published var isLoading = false
-    @Published var isSuccess = false
+    @Published var state: ViewState<Void> = .idle
     
-    init(hotel: Hotel, room: Room, bookingService: BookingService) {
+    init(hotel: Hotel, room: Room) {
         self.hotel = hotel
         self.room = room
-        self.bookingService = bookingService
+        self.bookingService = ServiceLocator.shared.resolve()
     }
     
     var numberOfNights: Int {
@@ -57,10 +56,13 @@ class BookingCheckoutViewModel: ObservableObject {
     }
     
     func startPayment() {
-        isLoading = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
-            self?.isLoading = false
-            self?.isSuccess = true
+        guard isFormValid else { return }
+        
+        state = .loading
+        
+        // Symulacja API
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            self.state = .success(())
         }
     }
     

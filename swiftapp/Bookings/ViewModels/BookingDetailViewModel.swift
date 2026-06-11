@@ -13,9 +13,9 @@ class BookingDetailViewModel: ObservableObject {
     
     private var cancellables = Set<AnyCancellable>()
     
-    init(bookingId: UUID, bookingService: BookingService) {
+    init(bookingId: UUID) {
         self.bookingId = bookingId
-        self.bookingService = bookingService
+        self.bookingService = ServiceLocator.shared.resolve()
         
         // Find the booking
         if let found = bookingService.bookings.first(where: { $0.id == bookingId }) {

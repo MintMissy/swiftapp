@@ -4,7 +4,6 @@ import MapKit
 struct HotelDetailView: View {
     @StateObject private var viewModel: HotelDetailViewModel
     @Environment(\.dismiss) var dismiss
-    @EnvironmentObject var bookingService: BookingService
     
     init(hotel: Hotel) {
         _viewModel = StateObject(wrappedValue: HotelDetailViewModel(hotel: hotel))
@@ -42,7 +41,7 @@ struct HotelDetailView: View {
             }
         }
         .sheet(item: $viewModel.selectedRoomForBooking) { room in
-            BookingCheckoutView(hotel: viewModel.hotel, room: room, bookingService: bookingService)
+            BookingCheckoutView(hotel: viewModel.hotel, room: room)
         }
     }
     
@@ -205,6 +204,5 @@ struct HotelDetailView: View {
 #Preview {
     NavigationStack {
         HotelDetailView(hotel: MockData.hotels[0])
-            .environmentObject(BookingService())
     }
 }

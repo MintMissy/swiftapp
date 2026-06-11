@@ -2,11 +2,8 @@ import SwiftUI
 
 struct BookingsView: View {
     @StateObject private var viewModel: BookingsViewModel
-    let bookingService: BookingService
-    
-    init(bookingService: BookingService) {
-        self.bookingService = bookingService
-        _viewModel = StateObject(wrappedValue: BookingsViewModel(bookingService: bookingService))
+    init() {
+        _viewModel = StateObject(wrappedValue: BookingsViewModel())
     }
     
     var body: some View {
@@ -37,7 +34,7 @@ struct BookingsView: View {
             .navigationTitle("Rezerwacje")
             .background(Color(.systemGroupedBackground))
             .sheet(item: $viewModel.selectedBookingForDetail) { booking in
-                BookingDetailView(bookingId: booking.id, bookingService: bookingService)
+                BookingDetailView(bookingId: booking.id)
             }
         }
     }
@@ -159,5 +156,5 @@ struct BookingCardView: View {
 }
 
 #Preview {
-    BookingsView(bookingService: BookingService())
+    BookingsView()
 }
