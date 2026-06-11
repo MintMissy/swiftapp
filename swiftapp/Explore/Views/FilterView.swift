@@ -7,14 +7,11 @@ struct FilterConfig: Equatable {
 }
 
 struct FilterView: View {
-    @Binding var config: FilterConfig
+    @StateObject private var viewModel: FilterViewModel
     @Environment(\.dismiss) var dismiss
     
-    @State private var localConfig: FilterConfig
-    
-    init(config: Binding<FilterConfig>) {
-        _config = config
-        _localConfig = State(initialValue: config.wrappedValue)
+    init(viewModel: FilterViewModel) {
+        _viewModel = StateObject(wrappedValue: viewModel)
     }
     
     var body: some View {
@@ -36,7 +33,7 @@ struct FilterView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Resetuj") {
-                        localConfig = FilterConfig()
+                        viewModel.reset()
                     }
                     .foregroundColor(.indigo)
                 }
@@ -57,13 +54,13 @@ struct FilterView: View {
                 Text("Maksymalna cena")
                     .font(.headline)
                 Spacer()
-                Text("\(Int(localConfig.maxPrice)) zł")
+                Text("\(Int(viewModel.localConfig.maxPrice)) zł")
                     .font(.subheadline)
                     .fontWeight(.bold)
                     .foregroundColor(.indigo)
             }
             
-            Slider(value: $localConfig.maxPrice, in: 200...1000, step: 50)
+            Slider(value: $viewModel.localConfig.maxPrice, in: 200...1000, step: 50)
                 .tint(.indigo)
         }
     }
@@ -77,19 +74,19 @@ struct FilterView: View {
                 HStack(spacing: 16) {
                     ForEach(Array(stride(from: 3.0, through: 5.0, by: 0.5)), id: \.self) { rating in
                         Button(action: {
-                            localConfig.minRating = localConfig.minRating == rating ? 0.0 : rating
+                            viewModel.toggleRating(rating)
                         }) {
                             HStack(spacing: 4) {
                                 Image(systemName: "star.fill")
-                                    .foregroundColor(localConfig.minRating >= rating ? .yellow : .gray)
+                                    .foregroundColor(viewModel.localConfig.minRating >= rating ? .yellow : .gray)
                                 Text(String(format: "%.1f+", rating))
                                     .font(.subheadline)
                                     .fontWeight(.semibold)
                             }
                             .padding(.horizontal, 12)
                             .padding(.vertical, 8)
-                            .background(localConfig.minRating >= rating ? Color.indigo.opacity(0.1) : Color(.systemGray6))
-                            .foregroundColor(localConfig.minRating >= rating ? .indigo : .primary)
+                            .background(viewModel.localConfig.minRating >= rating ? Color.indigo.opacity(0.1) : Color(.systemGray6))
+                            .foregroundColor(viewModel.localConfig.minRating >= rating ? .indigo : .primary)
                             .cornerRadius(8)
                         }
                     }
@@ -107,13 +104,9 @@ struct FilterView: View {
             
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                 ForEach(Amenity.allCases) { amenity in
-                    let isSelected = localConfig.selectedAmenities.contains(amenity)
+                    let isSelected = viewModel.localConfig.selectedAmenities.contains(amenity)
                     Button(action: {
-                        if isSelected {
-                            localConfig.selectedAmenities.remove(amenity)
-                        } else {
-                            localConfig.selectedAmenities.insert(amenity)
-                        }
+                        viewModel.toggleAmenity(amenity)
                     }) {
                         HStack {
                             Image(systemName: amenity.iconName)
@@ -134,7 +127,7 @@ struct FilterView: View {
     
     private var applyButton: some View {
         Button(action: {
-            config = localConfig
+            viewModel.apply()
             dismiss()
         }) {
             Text("Zastosuj filtry")
@@ -150,5 +143,5 @@ struct FilterView: View {
 }
 
 #Preview {
-    FilterView(config: .constant(FilterConfig()))
+    FilterView(viewModel: FilterViewModel(config: FilterConfig()))
 }

@@ -2,23 +2,11 @@ import SwiftUI
 import MapKit
 
 struct BookingDetailView: View {
-    let bookingId: UUID
-    @EnvironmentObject var bookingStore: BookingStore
+    @StateObject private var viewModel: BookingDetailViewModel
     @Environment(\.dismiss) var dismiss
     
-    @State private var isShowingDigitalKey = false
-    @State private var isShowingRoomService = false
-    
-    var booking: Booking {
-        bookingStore.bookings.first(where: { $0.id == bookingId }) ?? MockData.bookings[0]
-    }
-    
-    var isBookingActiveByDate: Bool {
-        let calendar = Calendar.current
-        let start = calendar.startOfDay(for: booking.checkInDate)
-        let end = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: booking.checkOutDate)) ?? booking.checkOutDate
-        let now = Date()
-        return now >= start && now < end
+    init(bookingId: UUID, bookingStore: BookingStore) {
+        _viewModel = StateObject(wrappedValue: BookingDetailViewModel(bookingId: bookingId, bookingStore: bookingStore))
     }
     
     var body: some View {
@@ -51,11 +39,11 @@ struct BookingDetailView: View {
                 }
             }
             .background(Color(.systemGroupedBackground))
-            .sheet(isPresented: $isShowingDigitalKey) {
-                DigitalKeyView(hotelName: booking.hotelName, roomName: booking.roomName)
+            .sheet(isPresented: $viewModel.isShowingDigitalKey) {
+                DigitalKeyView(hotelName: viewModel.booking.hotelName, roomName: viewModel.booking.roomName)
             }
-            .sheet(isPresented: $isShowingRoomService) {
-                RoomServiceView(bookingId: booking.id, hotelName: booking.hotelName, roomName: booking.roomName)
+            .sheet(isPresented: $viewModel.isShowingRoomService) {
+                RoomServiceView(bookingId: viewModel.booking.id, hotelName: viewModel.booking.hotelName, roomName: viewModel.booking.roomName, bookingStore: bookingStore)
             }
         }
     }
@@ -63,12 +51,12 @@ struct BookingDetailView: View {
     private var ticketCardView: some View {
         VStack(spacing: 20) {
             VStack(spacing: 8) {
-                Text(booking.hotelName)
+                Text(viewModel.booking.hotelName)
                     .font(.title2)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
                 
-                Text(booking.hotelLocation)
+                Text(viewModel.booking.hotelLocation)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
@@ -80,7 +68,7 @@ struct BookingDetailView: View {
                     Text("Zameldowanie")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    Text(formatDate(booking.checkInDate))
+                    Text(viewModel.formatDate(viewModel.booking.checkInDate))
                         .font(.subheadline)
                         .fontWeight(.semibold)
                 }
@@ -92,7 +80,7 @@ struct BookingDetailView: View {
                     Text("Wymeldowanie")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    Text(formatDate(booking.checkOutDate))
+                    Text(viewModel.formatDate(viewModel.booking.checkOutDate))
                         .font(.subheadline)
                         .fontWeight(.semibold)
                 }
@@ -100,7 +88,7 @@ struct BookingDetailView: View {
             
             Divider()
             
-            QRCodeView(data: booking.qrCodeData)
+            QRCodeView(data: viewModel.booking.qrCodeData)
                 .padding(.vertical, 8)
             
             Text("Pokaż ten kod na recepcji podczas meldowania.")
@@ -117,7 +105,7 @@ struct BookingDetailView: View {
     
     private var premiumActionsSection: some View {
         HStack(spacing: 16) {
-            Button(action: { isShowingDigitalKey = true }) {
+            Button(action: { viewModel.isShowingDigitalKey = true }) {
                 HStack {
                     Image(systemName: "key.fill")
                     Text("Klucz cyfrowy")
@@ -131,8 +119,8 @@ struct BookingDetailView: View {
                 .cornerRadius(12)
             }
             
-            if isBookingActiveByDate {
-                Button(action: { isShowingRoomService = true }) {
+            if viewModel.isBookingActiveByDate {
+                Button(action: { viewModel.isShowingRoomService = true }) {
                     HStack {
                         Image(systemName: "fork.knife")
                         Text("Room Service")
@@ -155,10 +143,10 @@ struct BookingDetailView: View {
                 .font(.headline)
             
             VStack(spacing: 12) {
-                detailRow(title: "Pokój", value: booking.roomName)
-                detailRow(title: "Gość", value: booking.guestName)
-                detailRow(title: "E-mail", value: booking.guestEmail)
-                detailRow(title: "Cena całkowita", value: "\(Int(booking.totalPrice)) zł")
+                detailRow(title: "Pokój", value: viewModel.booking.roomName)
+                detailRow(title: "Gość", value: viewModel.booking.guestName)
+                detailRow(title: "E-mail", value: viewModel.booking.guestEmail)
+                detailRow(title: "Cena całkowita", value: "\(Int(viewModel.booking.totalPrice)) zł")
             }
             .padding()
             .background(Color(.secondarySystemGroupedBackground))
@@ -194,11 +182,11 @@ struct BookingDetailView: View {
                         Text("Dojazd")
                             .font(.subheadline)
                             .fontWeight(.medium)
-                        Text(booking.hotelLocation)
+                        Text(viewModel.booking.hotelLocation)
                             .font(.caption)
                             .foregroundColor(.secondary)
                         
-                        Button(action: openMaps) {
+                        Button(action: viewModel.openMaps) {
                             Text("Otwórz w Mapach")
                                 .font(.caption)
                                 .fontWeight(.bold)
@@ -225,39 +213,18 @@ struct BookingDetailView: View {
         .font(.subheadline)
     }
     
-    private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "dd MMMM yyyy"
-        formatter.locale = Locale(identifier: "pl_PL")
-        return formatter.string(from: date)
-    }
-    
-    private func formatTime(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm, dd MMM"
-        formatter.locale = Locale(identifier: "pl_PL")
-        return formatter.string(from: date)
-    }
-    
-    private func openMaps() {
-        let address = booking.hotelLocation.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-        if let url = URL(string: "maps://?q=\(address)") {
-            UIApplication.shared.open(url)
-        }
-    }
-    
     private var roomServiceOrdersSection: some View {
         Group {
-            if !booking.roomServiceOrders.isEmpty {
+            if !viewModel.booking.roomServiceOrders.isEmpty {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Historia zamówień Room Service")
                         .font(.headline)
                         .padding(.top, 4)
                     
-                    ForEach(booking.roomServiceOrders) { order in
+                    ForEach(viewModel.booking.roomServiceOrders) { order in
                         VStack(alignment: .leading, spacing: 10) {
                             HStack {
-                                Label(formatTime(order.timestamp), systemImage: "clock.fill")
+                                Label(viewModel.formatTime(order.timestamp), systemImage: "clock.fill")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                                 Spacer()
@@ -315,6 +282,6 @@ struct BookingDetailView: View {
 }
 
 #Preview {
-    BookingDetailView(bookingId: MockData.bookings[0].id)
-        .environmentObject(BookingStore())
+    let store = BookingStore()
+    return BookingDetailView(bookingId: MockData.bookings[0].id, bookingStore: store)
 }

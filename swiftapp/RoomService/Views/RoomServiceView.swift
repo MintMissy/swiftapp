@@ -9,57 +9,21 @@ struct ServiceItem: Identifiable {
 }
 
 struct RoomServiceView: View {
-    let bookingId: UUID
-    let hotelName: String
-    let roomName: String
-    @EnvironmentObject var bookingStore: BookingStore
+    @StateObject private var viewModel: RoomServiceViewModel
     @Environment(\.dismiss) var dismiss
     
-    @State private var selectedCategory = "Jedzenie"
-    @State private var quantities: [UUID: Int] = [:]
-    @State private var isLoading = false
-    @State private var isSuccess = false
-    
-    let menuItems = [
-        ServiceItem(name: "Burger wołowy z frytkami", category: "Jedzenie", price: 55.0, icon: "fork.knife"),
-        ServiceItem(name: "Sałatka Cezar z kurczakiem", category: "Jedzenie", price: 38.0, icon: "leaf.fill"),
-        ServiceItem(name: "Śniadanie kontynentalne", category: "Jedzenie", price: 45.0, icon: "cup.and.saucer.fill"),
-        ServiceItem(name: "Kawa Cappuccino", category: "Napoje", price: 15.0, icon: "cup.and.saucer.fill"),
-        ServiceItem(name: "Świeżo wyciskany sok", category: "Napoje", price: 18.0, icon: "drop.fill"),
-        ServiceItem(name: "Woda niegazowana", category: "Napoje", price: 8.0, icon: "drop"),
-        ServiceItem(name: "Czyste ręczniki", category: "Usługi", price: 0.0, icon: "washer.fill"),
-        ServiceItem(name: "Sprzątanie pokoju", category: "Usługi", price: 0.0, icon: "sparkles")
-    ]
-    
-    var filteredItems: [ServiceItem] {
-        menuItems.filter { $0.category == selectedCategory }
-    }
-    
-    var totalCost: Double {
-        menuItems.reduce(0.0) { sum, item in
-            sum + (item.price * Double(quantities[item.id] ?? 0))
-        }
-    }
-    
-    var cartIsEmpty: Bool {
-        !quantities.values.contains { $0 > 0 }
-    }
-    
-    var isBookingInactive: Bool {
-        if let booking = bookingStore.bookings.first(where: { $0.id == bookingId }) {
-            return booking.status == .past
-        }
-        return true
+    init(bookingId: UUID, hotelName: String, roomName: String, bookingStore: BookingStore) {
+        _viewModel = StateObject(wrappedValue: RoomServiceViewModel(bookingId: bookingId, hotelName: hotelName, roomName: roomName, bookingStore: bookingStore))
     }
     
     var body: some View {
         NavigationStack {
             ZStack {
-                if isSuccess {
+                if viewModel.isSuccess {
                     successView
                 } else {
                     VStack {
-                        Picker("Kategoria", selection: $selectedCategory) {
+                        Picker("Kategoria", selection: $viewModel.selectedCategory) {
                             Text("Jedzenie").tag("Jedzenie")
                             Text("Napoje").tag("Napoje")
                             Text("Usługi").tag("Usługi")
@@ -68,7 +32,7 @@ struct RoomServiceView: View {
                         .padding()
                         
                         List {
-                            ForEach(filteredItems) { item in
+                            ForEach(viewModel.filteredItems) { item in
                                 HStack(spacing: 16) {
                                     ZStack {
                                         RoundedRectangle(cornerRadius: 8)
@@ -107,14 +71,14 @@ struct RoomServiceView: View {
                     }
                 }
                 
-                if isLoading {
+                if viewModel.isLoading {
                     loadingOverlay
                 }
             }
             .navigationTitle("Room Service")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                if !isSuccess {
+                if !viewModel.isSuccess {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button("Anuluj") {
                             dismiss()
@@ -127,10 +91,10 @@ struct RoomServiceView: View {
     }
     
     private func quantityControl(for item: ServiceItem) -> some View {
-        let qty = quantities[item.id] ?? 0
+        let qty = viewModel.getQuantity(for: item)
         return HStack(spacing: 12) {
             if qty > 0 {
-                Button(action: { quantities[item.id] = qty - 1 }) {
+                Button(action: { viewModel.decrementQuantity(for: item) }) {
                     Image(systemName: "minus.circle.fill")
                         .font(.title2)
                         .foregroundColor(.indigo)
@@ -142,7 +106,7 @@ struct RoomServiceView: View {
                     .frame(minWidth: 20)
             }
             
-            Button(action: { quantities[item.id] = qty + 1 }) {
+            Button(action: { viewModel.incrementQuantity(for: item) }) {
                 Image(systemName: "plus.circle.fill")
                     .font(.title2)
                     .foregroundColor(.indigo)
@@ -159,7 +123,7 @@ struct RoomServiceView: View {
                 Text("Cena całkowita")
                     .font(.headline)
                 Spacer()
-                Text("\(Int(totalCost)) zł")
+                Text("\(Int(viewModel.totalCost)) zł")
                     .font(.title3)
                     .fontWeight(.bold)
                     .foregroundColor(.indigo)
@@ -167,18 +131,18 @@ struct RoomServiceView: View {
             .padding(.horizontal)
             .padding(.top, 4)
             
-            Button(action: submitOrder) {
+            Button(action: viewModel.submitOrder) {
                 Text("Złóż zamówienie do pokoju")
                     .font(.headline)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background((cartIsEmpty || isBookingInactive) ? Color.gray : Color.indigo)
+                    .background((viewModel.cartIsEmpty || viewModel.isBookingInactive) ? Color.gray : Color.indigo)
                     .cornerRadius(12)
                     .padding(.horizontal)
                     .padding(.bottom, 16)
             }
-            .disabled(cartIsEmpty || isBookingInactive)
+            .disabled(viewModel.cartIsEmpty || viewModel.isBookingInactive)
         }
         .background(Color(.systemBackground))
     }
@@ -242,33 +206,9 @@ struct RoomServiceView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(.systemBackground))
     }
-    
-    private func submitOrder() {
-        isLoading = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            isLoading = false
-            
-            let orderedItems = menuItems.compactMap { item -> RoomServiceOrderItem? in
-                let qty = quantities[item.id] ?? 0
-                guard qty > 0 else { return nil }
-                return RoomServiceOrderItem(id: UUID(), name: item.name, quantity: qty, price: item.price)
-            }
-            
-            let newOrder = RoomServiceOrder(
-                id: UUID(),
-                timestamp: Date(),
-                items: orderedItems,
-                totalPrice: totalCost,
-                status: "W przygotowaniu"
-            )
-            
-            bookingStore.addRoomServiceOrder(to: bookingId, order: newOrder)
-            isSuccess = true
-        }
-    }
 }
 
 #Preview {
-    RoomServiceView(bookingId: UUID(), hotelName: "Grand Poznań Hotel & Spa", roomName: "Pokój Standard Double")
-        .environmentObject(BookingStore())
+    let store = BookingStore()
+    return RoomServiceView(bookingId: UUID(), hotelName: "Grand Poznań Hotel & Spa", roomName: "Pokój Standard Double", bookingStore: store)
 }

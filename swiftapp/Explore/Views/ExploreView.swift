@@ -21,7 +21,9 @@ struct ExploreView: View {
             .navigationTitle("Eksploruj")
             .background(Color(.systemGroupedBackground))
             .sheet(isPresented: $viewModel.isShowingFilters) {
-                FilterView(config: $viewModel.filterConfig)
+                FilterView(viewModel: FilterViewModel(config: viewModel.filterConfig) { config in
+                    viewModel.filterConfig = config
+                })
             }
         }
     }

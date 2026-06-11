@@ -1,61 +1,25 @@
 import SwiftUI
 
 struct BookingCheckoutView: View {
-    let hotel: Hotel
-    let room: Room
-    @EnvironmentObject var bookingStore: BookingStore
+    @StateObject private var viewModel: BookingCheckoutViewModel
     @Environment(\.dismiss) var dismiss
     
-    @State private var checkInDate = Date()
-    @State private var checkOutDate = Calendar.current.date(byAdding: .day, value: 1, to: Date()) ?? Date()
-    @State private var guestName = "Jan Kowalski"
-    @State private var guestEmail = "jan.kowalski@student.wsb.poznan.pl"
-    
-    @State private var isLoading = false
-    @State private var isSuccess = false
-    
-    var numberOfNights: Int {
-        let calendar = Calendar.current
-        let fromDate = calendar.startOfDay(for: checkInDate)
-        let toDate = calendar.startOfDay(for: checkOutDate)
-        let components = calendar.dateComponents([.day], from: fromDate, to: toDate)
-        return max(1, components.day ?? 1)
-    }
-    
-    var basePrice: Double {
-        room.pricePerNight * Double(numberOfNights)
-    }
-    
-    var vatPrice: Double {
-        basePrice * 0.08
-    }
-    
-    var totalPrice: Double {
-        basePrice + vatPrice
-    }
-    
-    var isEmailValid: Bool {
-        let emailRegex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
-        let emailPredicate = NSPredicate(format:"SELF MATCHES %@", emailRegex)
-        return emailPredicate.evaluate(with: guestEmail)
-    }
-    
-    var isFormValid: Bool {
-        !guestName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && isEmailValid
+    init(hotel: Hotel, room: Room, bookingStore: BookingStore) {
+        _viewModel = StateObject(wrappedValue: BookingCheckoutViewModel(hotel: hotel, room: room, bookingStore: bookingStore))
     }
     
     var body: some View {
         NavigationStack {
             ZStack {
-                if isSuccess {
+                if viewModel.isSuccess {
                     successView
                 } else {
                     Form {
                         Section("Szczegóły pokoju") {
                             VStack(alignment: .leading, spacing: 6) {
-                                Text(hotel.name)
+                                Text(viewModel.hotel.name)
                                     .font(.headline)
-                                Text(room.name)
+                                Text(viewModel.room.name)
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                             }
@@ -65,35 +29,33 @@ struct BookingCheckoutView: View {
                         Section("Termin pobytu") {
                             DatePicker(
                                 "Zameldowanie",
-                                selection: $checkInDate,
+                                selection: $viewModel.checkInDate,
                                 in: Date()...,
                                 displayedComponents: .date
                             )
                             .tint(.indigo)
-                            .onChange(of: checkInDate) { newCheckIn in
-                                if checkOutDate <= newCheckIn {
-                                    checkOutDate = Calendar.current.date(byAdding: .day, value: 1, to: newCheckIn) ?? newCheckIn
-                                }
+                            .onChange(of: viewModel.checkInDate) { newCheckIn in
+                                viewModel.onCheckInDateChange(newCheckIn: newCheckIn)
                             }
                             
                             DatePicker(
                                 "Wymeldowanie",
-                                selection: $checkOutDate,
-                                in: Calendar.current.date(byAdding: .day, value: 1, to: checkInDate)!...,
+                                selection: $viewModel.checkOutDate,
+                                in: Calendar.current.date(byAdding: .day, value: 1, to: viewModel.checkInDate)!...,
                                 displayedComponents: .date
                             )
                             .tint(.indigo)
                         }
                         
                         Section("Dane gościa") {
-                            TextField("Imię i nazwisko", text: $guestName)
+                            TextField("Imię i nazwisko", text: $viewModel.guestName)
                             VStack(alignment: .leading, spacing: 4) {
-                                TextField("E-mail", text: $guestEmail)
+                                TextField("E-mail", text: $viewModel.guestEmail)
                                     .keyboardType(.emailAddress)
                                     .autocorrectionDisabled()
                                     .textInputAutocapitalization(.never)
                                 
-                                if !guestEmail.isEmpty && !isEmailValid {
+                                if !viewModel.guestEmail.isEmpty && !viewModel.isEmailValid {
                                     Text("Wprowadź poprawny adres e-mail")
                                         .font(.caption)
                                         .foregroundColor(.red)
@@ -105,27 +67,27 @@ struct BookingCheckoutView: View {
                             HStack {
                                 Text("Liczba nocy")
                                 Spacer()
-                                Text("\(numberOfNights)")
+                                Text("\(viewModel.numberOfNights)")
                                     .fontWeight(.medium)
                             }
                             
                             HStack {
                                 Text("Cena za noc")
                                 Spacer()
-                                Text("\(Int(room.pricePerNight)) zł")
+                                Text("\(Int(viewModel.room.pricePerNight)) zł")
                             }
                             
                             HStack {
                                 Text("Podatek VAT (8%)")
                                 Spacer()
-                                Text("\(Int(vatPrice)) zł")
+                                Text("\(Int(viewModel.vatPrice)) zł")
                             }
                             
                             HStack {
                                 Text("Suma")
                                     .fontWeight(.bold)
                                 Spacer()
-                                Text("\(Int(totalPrice)) zł")
+                                Text("\(Int(viewModel.totalPrice)) zł")
                                     .font(.headline)
                                     .foregroundColor(.indigo)
                             }
@@ -136,14 +98,14 @@ struct BookingCheckoutView: View {
                     }
                 }
                 
-                if isLoading {
+                if viewModel.isLoading {
                     loadingOverlay
                 }
             }
             .navigationTitle("Rezerwacja pokoju")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                if !isSuccess {
+                if !viewModel.isSuccess {
                     ToolbarItem(placement: .topBarLeading) {
                         Button("Anuluj") {
                             dismiss()
@@ -156,17 +118,17 @@ struct BookingCheckoutView: View {
     }
     
     private var payButton: some View {
-        Button(action: startPayment) {
+        Button(action: viewModel.startPayment) {
             Text("Potwierdź i zapłać")
                 .font(.headline)
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(isFormValid ? LinearGradient(colors: [.indigo, .purple], startPoint: .topLeading, endPoint: .bottomTrailing) : LinearGradient(colors: [.gray], startPoint: .leading, endPoint: .trailing))
+                .background(viewModel.isFormValid ? LinearGradient(colors: [.indigo, .purple], startPoint: .topLeading, endPoint: .bottomTrailing) : LinearGradient(colors: [.gray], startPoint: .leading, endPoint: .trailing))
                 .cornerRadius(12)
                 .padding()
         }
-        .disabled(!isFormValid)
+        .disabled(!viewModel.isFormValid)
         .background(Color(.systemGroupedBackground))
     }
     
@@ -215,7 +177,11 @@ struct BookingCheckoutView: View {
             
             Spacer()
             
-            Button(action: completeBooking) {
+            Button(action: {
+                viewModel.completeBooking {
+                    dismiss()
+                }
+            }) {
                 Text("Gotowe")
                     .font(.headline)
                     .foregroundColor(.white)
@@ -230,39 +196,9 @@ struct BookingCheckoutView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(.systemBackground))
     }
-    
-    private func startPayment() {
-        isLoading = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            isLoading = false
-            isSuccess = true
-        }
-    }
-    
-    private func completeBooking() {
-        let code = "RES-\(hotel.name.prefix(2).uppercased())-\(Int.random(in: 1000...9999))"
-        let booking = Booking(
-            id: UUID(),
-            hotelId: hotel.id,
-            hotelName: hotel.name,
-            hotelLocation: hotel.location,
-            roomName: room.name,
-            checkInDate: checkInDate,
-            checkOutDate: checkOutDate,
-            guestName: guestName,
-            guestEmail: guestEmail,
-            totalPrice: totalPrice,
-            qrCodeData: code,
-            status: .upcoming
-        )
-        bookingStore.addBooking(booking)
-        dismiss()
-        bookingStore.selectedTab = 1
-        bookingStore.selectedBookingForDetail = booking
-    }
 }
 
 #Preview {
-    BookingCheckoutView(hotel: MockData.hotels[0], room: MockData.hotels[0].rooms[0])
-        .environmentObject(BookingStore())
+    let store = BookingStore()
+    return BookingCheckoutView(hotel: MockData.hotels[0], room: MockData.hotels[0].rooms[0], bookingStore: store)
 }

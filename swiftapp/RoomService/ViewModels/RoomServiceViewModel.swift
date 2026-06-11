@@ -1,0 +1,94 @@
+import Foundation
+import Combine
+
+class RoomServiceViewModel: ObservableObject {
+    let bookingId: UUID
+    let hotelName: String
+    let roomName: String
+    private let bookingStore: BookingStore
+    
+    @Published var selectedCategory = "Jedzenie"
+    @Published var quantities: [UUID: Int] = [:]
+    @Published var isLoading = false
+    @Published var isSuccess = false
+    
+    let menuItems = [
+        ServiceItem(name: "Burger wołowy z frytkami", category: "Jedzenie", price: 55.0, icon: "fork.knife"),
+        ServiceItem(name: "Sałatka Cezar z kurczakiem", category: "Jedzenie", price: 38.0, icon: "leaf.fill"),
+        ServiceItem(name: "Śniadanie kontynentalne", category: "Jedzenie", price: 45.0, icon: "cup.and.saucer.fill"),
+        ServiceItem(name: "Kawa Cappuccino", category: "Napoje", price: 15.0, icon: "cup.and.saucer.fill"),
+        ServiceItem(name: "Świeżo wyciskany sok", category: "Napoje", price: 18.0, icon: "drop.fill"),
+        ServiceItem(name: "Woda niegazowana", category: "Napoje", price: 8.0, icon: "drop"),
+        ServiceItem(name: "Czyste ręczniki", category: "Usługi", price: 0.0, icon: "washer.fill"),
+        ServiceItem(name: "Sprzątanie pokoju", category: "Usługi", price: 0.0, icon: "sparkles")
+    ]
+    
+    init(bookingId: UUID, hotelName: String, roomName: String, bookingStore: BookingStore) {
+        self.bookingId = bookingId
+        self.hotelName = hotelName
+        self.roomName = roomName
+        self.bookingStore = bookingStore
+    }
+    
+    var filteredItems: [ServiceItem] {
+        menuItems.filter { $0.category == selectedCategory }
+    }
+    
+    var totalCost: Double {
+        menuItems.reduce(0.0) { sum, item in
+            sum + (item.price * Double(quantities[item.id] ?? 0))
+        }
+    }
+    
+    var cartIsEmpty: Bool {
+        !quantities.values.contains { $0 > 0 }
+    }
+    
+    var isBookingInactive: Bool {
+        if let booking = bookingStore.bookings.first(where: { $0.id == bookingId }) {
+            return booking.status == .past
+        }
+        return true
+    }
+    
+    func incrementQuantity(for item: ServiceItem) {
+        let current = quantities[item.id] ?? 0
+        quantities[item.id] = current + 1
+    }
+    
+    func decrementQuantity(for item: ServiceItem) {
+        let current = quantities[item.id] ?? 0
+        if current > 0 {
+            quantities[item.id] = current - 1
+        }
+    }
+    
+    func getQuantity(for item: ServiceItem) -> Int {
+        quantities[item.id] ?? 0
+    }
+    
+    func submitOrder() {
+        isLoading = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+            guard let self = self else { return }
+            self.isLoading = false
+            
+            let orderedItems = self.menuItems.compactMap { item -> RoomServiceOrderItem? in
+                let qty = self.quantities[item.id] ?? 0
+                guard qty > 0 else { return nil }
+                return RoomServiceOrderItem(id: UUID(), name: item.name, quantity: qty, price: item.price)
+            }
+            
+            let newOrder = RoomServiceOrder(
+                id: UUID(),
+                timestamp: Date(),
+                items: orderedItems,
+                totalPrice: self.totalCost,
+                status: "W przygotowaniu"
+            )
+            
+            self.bookingStore.addRoomServiceOrder(to: self.bookingId, order: newOrder)
+            self.isSuccess = true
+        }
+    }
+}

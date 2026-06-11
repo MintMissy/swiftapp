@@ -1,61 +1,10 @@
 import SwiftUI
 
 struct ProfileView: View {
-    @EnvironmentObject var bookingStore: BookingStore
-    @AppStorage("isDarkMode") private var isDarkMode = false
+    @StateObject private var viewModel: ProfileViewModel
     
-    private let basePoints = 2000
-    
-    var totalPoints: Int {
-        basePoints + (bookingStore.bookings.count * 1000)
-    }
-    
-    var statusName: String {
-        if totalPoints < 3000 {
-            return "Status Brązowy"
-        } else if totalPoints < 5000 {
-            return "Status Srebrny"
-        } else if totalPoints < 8000 {
-            return "Status Złoty"
-        } else {
-            return "Status Platynowy"
-        }
-    }
-    
-    var statusColor: Color {
-        if totalPoints < 3000 {
-            return Color(red: 205/255, green: 127/255, blue: 50/255)
-        } else if totalPoints < 5000 {
-            return Color(red: 170/255, green: 170/255, blue: 170/255)
-        } else if totalPoints < 8000 {
-            return Color(red: 212/255, green: 175/255, blue: 55/255)
-        } else {
-            return Color(red: 160/255, green: 120/255, blue: 220/255)
-        }
-    }
-    
-    var targetPoints: Int {
-        if totalPoints < 3000 {
-            return 3000
-        } else if totalPoints < 5000 {
-            return 5000
-        } else if totalPoints < 8000 {
-            return 8000
-        } else {
-            return 12000
-        }
-    }
-    
-    var nextStatusName: String {
-        if totalPoints < 3000 {
-            return "Srebrnego"
-        } else if totalPoints < 5000 {
-            return "Złotego"
-        } else if totalPoints < 8000 {
-            return "Platynowego"
-        } else {
-            return ""
-        }
+    init(bookingStore: BookingStore) {
+        _viewModel = StateObject(wrappedValue: ProfileViewModel(bookingStore: bookingStore))
     }
     
     var body: some View {
@@ -89,20 +38,20 @@ struct ProfileView: View {
                 Section("Program lojalnościowy") {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
-                            Text(statusName)
+                            Text(viewModel.statusName)
                                 .font(.headline)
-                                .foregroundColor(statusColor)
+                                .foregroundColor(viewModel.statusColor)
                             Spacer()
-                            Text("\(totalPoints) pkt")
+                            Text("\(viewModel.totalPoints) pkt")
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
                         }
                         
-                        ProgressView(value: Double(totalPoints), total: Double(targetPoints))
-                            .tint(statusColor)
+                        ProgressView(value: Double(viewModel.totalPoints), total: Double(viewModel.targetPoints))
+                            .tint(viewModel.statusColor)
                         
-                        if totalPoints < 8000 {
-                            Text("Zostało \(targetPoints - totalPoints) punktów do Statusu \(nextStatusName)")
+                        if viewModel.totalPoints < 8000 {
+                            Text("Zostało \(viewModel.targetPoints - viewModel.totalPoints) punktów do Statusu \(viewModel.nextStatusName)")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         } else {
@@ -115,7 +64,7 @@ struct ProfileView: View {
                 }
                 
                 Section("Ustawienia i pomoc") {
-                    Toggle(isOn: $isDarkMode) {
+                    Toggle(isOn: $viewModel.isDarkMode) {
                         Label("Tryb ciemny", systemImage: "moon.fill")
                     }
                     .tint(.indigo)
@@ -140,6 +89,6 @@ struct ProfileView: View {
 }
 
 #Preview {
-    ProfileView()
-        .environmentObject(BookingStore())
+    let store = BookingStore()
+    return ProfileView(bookingStore: store)
 }

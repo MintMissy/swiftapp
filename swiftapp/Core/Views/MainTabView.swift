@@ -12,13 +12,13 @@ struct MainTabView: View {
                 }
                 .tag(0)
             
-            BookingsView()
+            BookingsView(bookingStore: bookingStore)
                 .tabItem {
                     Label("Rezerwacje", systemImage: "calendar")
                 }
                 .tag(1)
             
-            ProfileView()
+            ProfileView(bookingStore: bookingStore)
                 .tabItem {
                     Label("Profil", systemImage: "person")
                 }

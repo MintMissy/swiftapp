@@ -1,32 +1,28 @@
 import SwiftUI
 
 struct ContactFormView: View {
-    @State private var subject = ""
-    @State private var message = ""
-    @State private var isShowingAlert = false
+    @StateObject private var viewModel = ContactFormViewModel()
     @Environment(\.dismiss) var dismiss
-    
-    let subjects = ["Problem z rezerwacją", "Płatności i faktury", "Uwagi do pobytu", "Inne"]
     
     var body: some View {
         Form {
             Section(header: Text("Temat wiadomości")) {
-                Picker("Wybierz temat", selection: $subject) {
+                Picker("Wybierz temat", selection: $viewModel.subject) {
                     Text("Wybierz temat...").tag("")
-                    ForEach(subjects, id: \.self) {
+                    ForEach(viewModel.subjects, id: \.self) {
                         Text($0).tag($0)
                     }
                 }
             }
             
             Section(header: Text("Treść wiadomości")) {
-                TextEditor(text: $message)
+                TextEditor(text: $viewModel.message)
                     .frame(minHeight: 150)
             }
             
             Section {
                 Button(action: {
-                    isShowingAlert = true
+                    viewModel.submitMessage()
                 }) {
                     Text("Wyślij wiadomość")
                         .font(.headline)
@@ -34,16 +30,16 @@ struct ContactFormView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 8)
                 }
-                .disabled(subject.isEmpty || message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .disabled(!viewModel.isValid)
                 .listRowBackground(
-                    (subject.isEmpty || message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) ?
+                    (!viewModel.isValid) ?
                         Color.gray : Color.indigo
                 )
             }
         }
         .navigationTitle("Pomoc i wsparcie")
         .navigationBarTitleDisplayMode(.inline)
-        .alert("Wiadomość wysłana", isPresented: $isShowingAlert) {
+        .alert("Wiadomość wysłana", isPresented: $viewModel.isShowingAlert) {
             Button("OK") {
                 dismiss()
             }

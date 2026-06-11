@@ -1,36 +1,30 @@
 import SwiftUI
 
 struct BookingsView: View {
-    @EnvironmentObject var bookingStore: BookingStore
-    @State private var selectedTab: BookingStatus = .upcoming
+    @StateObject private var viewModel: BookingsViewModel
     
-    var filteredBookings: [Booking] {
-        let filtered = bookingStore.bookings.filter { $0.status == selectedTab }
-        if selectedTab == .upcoming {
-            return filtered.sorted { $0.checkInDate < $1.checkInDate }
-        } else {
-            return filtered.sorted { $0.checkInDate > $1.checkInDate }
-        }
+    init(bookingStore: BookingStore) {
+        _viewModel = StateObject(wrappedValue: BookingsViewModel(bookingStore: bookingStore))
     }
     
     var body: some View {
         NavigationStack {
             VStack {
-                Picker("Status rezerwacji", selection: $selectedTab) {
+                Picker("Status rezerwacji", selection: $viewModel.selectedTab) {
                     Text("Nadchodzące").tag(BookingStatus.upcoming)
                     Text("Minione").tag(BookingStatus.past)
                 }
                 .pickerStyle(.segmented)
                 .padding()
                 
-                if filteredBookings.isEmpty {
+                if viewModel.filteredBookings.isEmpty {
                     emptyStateView
                 } else {
                     ScrollView {
                         LazyVStack(spacing: 16) {
-                            ForEach(filteredBookings) { booking in
+                            ForEach(viewModel.filteredBookings) { booking in
                                 BookingCardView(booking: booking) {
-                                    bookingStore.selectedBookingForDetail = booking
+                                    viewModel.selectedBookingForDetail = booking
                                 }
                             }
                         }
@@ -40,7 +34,7 @@ struct BookingsView: View {
             }
             .navigationTitle("Rezerwacje")
             .background(Color(.systemGroupedBackground))
-            .sheet(item: $bookingStore.selectedBookingForDetail) { booking in
+            .sheet(item: $viewModel.selectedBookingForDetail) { booking in
                 BookingDetailView(bookingId: booking.id)
             }
         }

@@ -2,29 +2,12 @@ import SwiftUI
 import MapKit
 
 struct HotelDetailView: View {
-    let hotel: Hotel
+    @StateObject private var viewModel: HotelDetailViewModel
     @Environment(\.dismiss) var dismiss
-    
-    @State private var region: MKCoordinateRegion
-    @State private var selectedRoomForBooking: Room? = nil
+    @EnvironmentObject var bookingStore: BookingStore
     
     init(hotel: Hotel) {
-        self.hotel = hotel
-        let coordinate: CLLocationCoordinate2D
-        if hotel.location.contains("Poznań") {
-            coordinate = CLLocationCoordinate2D(latitude: 52.4069, longitude: 16.9299)
-        } else if hotel.location.contains("Sopot") {
-            coordinate = CLLocationCoordinate2D(latitude: 54.4418, longitude: 18.5601)
-        } else if hotel.location.contains("Zakopane") {
-            coordinate = CLLocationCoordinate2D(latitude: 49.2992, longitude: 19.9495)
-        } else {
-            coordinate = CLLocationCoordinate2D(latitude: 52.2297, longitude: 21.0122)
-        }
-        
-        _region = State(initialValue: MKCoordinateRegion(
-            center: coordinate,
-            span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
-        ))
+        _viewModel = StateObject(wrappedValue: HotelDetailViewModel(hotel: hotel))
     }
     
     var body: some View {
@@ -58,8 +41,8 @@ struct HotelDetailView: View {
                 }
             }
         }
-        .sheet(item: $selectedRoomForBooking) { room in
-            BookingCheckoutView(hotel: hotel, room: room)
+        .sheet(item: $viewModel.selectedRoomForBooking) { room in
+            BookingCheckoutView(hotel: viewModel.hotel, room: room, bookingStore: bookingStore)
         }
     }
     
@@ -74,7 +57,7 @@ struct HotelDetailView: View {
             
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Image(systemName: hotel.imageName)
+                    Image(systemName: viewModel.hotel.imageName)
                         .font(.largeTitle)
                         .foregroundColor(.white.opacity(0.9))
                     Spacer()
@@ -89,11 +72,11 @@ struct HotelDetailView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(hotel.name)
+                    Text(viewModel.hotel.name)
                         .font(.title2)
                         .fontWeight(.bold)
                     
-                    Text(hotel.location)
+                    Text(viewModel.hotel.location)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
@@ -103,9 +86,9 @@ struct HotelDetailView: View {
                 HStack(spacing: 4) {
                     Image(systemName: "star.fill")
                         .foregroundColor(.yellow)
-                    Text(String(format: "%.1f", hotel.rating))
+                    Text(String(format: "%.1f", viewModel.hotel.rating))
                         .fontWeight(.bold)
-                    Text("(\(hotel.reviewCount))")
+                    Text("(\(viewModel.hotel.reviewCount))")
                         .foregroundColor(.secondary)
                         .font(.caption)
                 }
@@ -114,7 +97,7 @@ struct HotelDetailView: View {
                 .cornerRadius(8)
             }
             
-            Text(hotel.description)
+            Text(viewModel.hotel.description)
                 .font(.body)
                 .foregroundColor(.secondary)
                 .lineSpacing(4)
@@ -127,15 +110,17 @@ struct HotelDetailView: View {
                 .font(.headline)
             
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-                ForEach(hotel.amenities) { amenity in
+                ForEach(viewModel.hotel.amenities) { amenity in
                     HStack(spacing: 8) {
                         Image(systemName: amenity.iconName)
                             .foregroundColor(.indigo)
                         Text(amenity.displayName)
                             .font(.subheadline)
+                            .lineLimit(nil)
                         Spacer()
                     }
                     .padding(10)
+                    .frame(maxHeight: .infinity)
                     .background(Color(.secondarySystemGroupedBackground))
                     .cornerRadius(8)
                 }
@@ -148,7 +133,7 @@ struct HotelDetailView: View {
             Text("Lokalizacja")
                 .font(.headline)
             
-            Map(coordinateRegion: $region, annotationItems: [hotel]) { place in
+            Map(coordinateRegion: $viewModel.region, annotationItems: [viewModel.hotel]) { place in
                 MapMarker(coordinate: {
                     if place.location.contains("Poznań") {
                         return CLLocationCoordinate2D(latitude: 52.4069, longitude: 16.9299)
@@ -171,7 +156,7 @@ struct HotelDetailView: View {
             Text("Dostępne pokoje")
                 .font(.headline)
             
-            ForEach(hotel.rooms) { room in
+            ForEach(viewModel.hotel.rooms) { room in
                 VStack(alignment: .leading, spacing: 14) {
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
@@ -198,7 +183,7 @@ struct HotelDetailView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
-                    Button(action: { selectedRoomForBooking = room }) {
+                    Button(action: { viewModel.selectedRoomForBooking = room }) {
                         Text("Wybierz pokój")
                             .font(.subheadline)
                             .fontWeight(.bold)
