@@ -4,7 +4,7 @@ import Combine
 class BookingCheckoutViewModel: ObservableObject {
     let hotel: Hotel
     let room: Room
-    private let bookingStore: BookingStore
+    private let bookingService: BookingService
     
     @Published var checkInDate = Date()
     @Published var checkOutDate = Calendar.current.date(byAdding: .day, value: 1, to: Date()) ?? Date()
@@ -14,10 +14,10 @@ class BookingCheckoutViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var isSuccess = false
     
-    init(hotel: Hotel, room: Room, bookingStore: BookingStore) {
+    init(hotel: Hotel, room: Room, bookingService: BookingService) {
         self.hotel = hotel
         self.room = room
-        self.bookingStore = bookingStore
+        self.bookingService = bookingService
     }
     
     var numberOfNights: Int {
@@ -80,9 +80,9 @@ class BookingCheckoutViewModel: ObservableObject {
             qrCodeData: code,
             status: .upcoming
         )
-        bookingStore.addBooking(booking)
+        bookingService.addBooking(booking)
         onComplete()
-        bookingStore.selectedTab = 1
-        bookingStore.selectedBookingForDetail = booking
+        bookingService.selectedTab = 1
+        bookingService.selectedBookingForDetail = booking
     }
 }

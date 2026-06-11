@@ -3,7 +3,7 @@ import Combine
 import SwiftUI
 
 class ProfileViewModel: ObservableObject {
-    private let bookingStore: BookingStore
+    private let bookingService: BookingService
     private var cancellables = Set<AnyCancellable>()
     
     @Published var totalPoints: Int = 2000
@@ -15,11 +15,11 @@ class ProfileViewModel: ObservableObject {
     
     private let basePoints = 2000
     
-    init(bookingStore: BookingStore) {
-        self.bookingStore = bookingStore
+    init(bookingService: BookingService) {
+        self.bookingService = bookingService
         self.isDarkMode = UserDefaults.standard.bool(forKey: "isDarkMode")
         
-        bookingStore.$bookings
+        bookingService.$bookings
             .map { [weak self] bookings in
                 (self?.basePoints ?? 2000) + (bookings.count * 1000)
             }

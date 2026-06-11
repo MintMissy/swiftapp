@@ -4,8 +4,8 @@ struct BookingCheckoutView: View {
     @StateObject private var viewModel: BookingCheckoutViewModel
     @Environment(\.dismiss) var dismiss
     
-    init(hotel: Hotel, room: Room, bookingStore: BookingStore) {
-        _viewModel = StateObject(wrappedValue: BookingCheckoutViewModel(hotel: hotel, room: room, bookingStore: bookingStore))
+    init(hotel: Hotel, room: Room, bookingService: BookingService) {
+        _viewModel = StateObject(wrappedValue: BookingCheckoutViewModel(hotel: hotel, room: room, bookingService: bookingService))
     }
     
     var body: some View {
@@ -199,6 +199,6 @@ struct BookingCheckoutView: View {
 }
 
 #Preview {
-    let store = BookingStore()
-    return BookingCheckoutView(hotel: MockData.hotels[0], room: MockData.hotels[0].rooms[0], bookingStore: store)
+    let service = BookingService()
+    return BookingCheckoutView(hotel: MockData.hotels[0], room: MockData.hotels[0].rooms[0], bookingService: service)
 }

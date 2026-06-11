@@ -4,7 +4,7 @@ import SwiftUI
 
 class BookingDetailViewModel: ObservableObject {
     let bookingId: UUID
-    private let bookingStore: BookingStore
+    private let bookingService: BookingService
     
     @Published var isShowingDigitalKey = false
     @Published var isShowingRoomService = false
@@ -13,12 +13,18 @@ class BookingDetailViewModel: ObservableObject {
     
     private var cancellables = Set<AnyCancellable>()
     
-    init(bookingId: UUID, bookingStore: BookingStore) {
+    init(bookingId: UUID, bookingService: BookingService) {
         self.bookingId = bookingId
-        self.bookingStore = bookingStore
-        self.booking = bookingStore.bookings.first(where: { $0.id == bookingId }) ?? MockData.bookings[0]
+        self.bookingService = bookingService
         
-        bookingStore.$bookings
+        // Find the booking
+        if let found = bookingService.bookings.first(where: { $0.id == bookingId }) {
+            self.booking = found
+        } else {
+            self.booking = MockData.bookings[0]
+        }
+        
+        bookingService.$bookings
             .compactMap { $0.first(where: { $0.id == bookingId }) }
             .assign(to: \.booking, on: self)
             .store(in: &cancellables)

@@ -5,7 +5,7 @@ class RoomServiceViewModel: ObservableObject {
     let bookingId: UUID
     let hotelName: String
     let roomName: String
-    private let bookingStore: BookingStore
+    private let bookingService: BookingService
     
     @Published var selectedCategory = "Jedzenie"
     @Published var quantities: [UUID: Int] = [:]
@@ -23,11 +23,11 @@ class RoomServiceViewModel: ObservableObject {
         ServiceItem(name: "Sprzątanie pokoju", category: "Usługi", price: 0.0, icon: "sparkles")
     ]
     
-    init(bookingId: UUID, hotelName: String, roomName: String, bookingStore: BookingStore) {
+    init(bookingId: UUID, hotelName: String, roomName: String, bookingService: BookingService) {
         self.bookingId = bookingId
         self.hotelName = hotelName
         self.roomName = roomName
-        self.bookingStore = bookingStore
+        self.bookingService = bookingService
     }
     
     var filteredItems: [ServiceItem] {
@@ -45,7 +45,7 @@ class RoomServiceViewModel: ObservableObject {
     }
     
     var isBookingInactive: Bool {
-        if let booking = bookingStore.bookings.first(where: { $0.id == bookingId }) {
+        if let booking = bookingService.bookings.first(where: { $0.id == bookingId }) {
             return booking.status == .past
         }
         return true
@@ -87,7 +87,7 @@ class RoomServiceViewModel: ObservableObject {
                 status: "W przygotowaniu"
             )
             
-            self.bookingStore.addRoomServiceOrder(to: self.bookingId, order: newOrder)
+            self.bookingService.addRoomServiceOrder(to: self.bookingId, order: newOrder)
             self.isSuccess = true
         }
     }

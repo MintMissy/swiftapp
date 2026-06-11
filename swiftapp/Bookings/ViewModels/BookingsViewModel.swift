@@ -6,13 +6,13 @@ class BookingsViewModel: ObservableObject {
     @Published var filteredBookings: [Booking] = []
     @Published var selectedBookingForDetail: Booking? = nil
     
-    private let bookingStore: BookingStore
+    private let bookingService: BookingService
     private var cancellables = Set<AnyCancellable>()
     
-    init(bookingStore: BookingStore) {
-        self.bookingStore = bookingStore
+    init(bookingService: BookingService) {
+        self.bookingService = bookingService
         
-        Publishers.CombineLatest($selectedTab, bookingStore.$bookings)
+        Publishers.CombineLatest($selectedTab, bookingService.$bookings)
             .map { tab, bookings in
                 let filtered = bookings.filter { $0.status == tab }
                 if tab == .upcoming {

@@ -1,5 +1,6 @@
 import SwiftUI
 import MapKit
+import Combine
 
 class HotelDetailViewModel: ObservableObject {
     let hotel: Hotel

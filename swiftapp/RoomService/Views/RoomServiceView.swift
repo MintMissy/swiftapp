@@ -12,8 +12,8 @@ struct RoomServiceView: View {
     @StateObject private var viewModel: RoomServiceViewModel
     @Environment(\.dismiss) var dismiss
     
-    init(bookingId: UUID, hotelName: String, roomName: String, bookingStore: BookingStore) {
-        _viewModel = StateObject(wrappedValue: RoomServiceViewModel(bookingId: bookingId, hotelName: hotelName, roomName: roomName, bookingStore: bookingStore))
+    init(bookingId: UUID, hotelName: String, roomName: String, bookingService: BookingService) {
+        _viewModel = StateObject(wrappedValue: RoomServiceViewModel(bookingId: bookingId, hotelName: hotelName, roomName: roomName, bookingService: bookingService))
     }
     
     var body: some View {
@@ -209,6 +209,6 @@ struct RoomServiceView: View {
 }
 
 #Preview {
-    let store = BookingStore()
-    return RoomServiceView(bookingId: UUID(), hotelName: "Grand Poznań Hotel & Spa", roomName: "Pokój Standard Double", bookingStore: store)
+    let service = BookingService()
+    return RoomServiceView(bookingId: UUID(), hotelName: "Grand Poznań Hotel & Spa", roomName: "Pokój Standard Double", bookingService: service)
 }
