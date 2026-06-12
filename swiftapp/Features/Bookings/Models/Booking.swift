@@ -17,7 +17,7 @@ final class Booking: Identifiable, Hashable {
     var status: BookingStatus
     
     @Relationship(deleteRule: .cascade)
-    var roomServiceOrders: [RoomServiceOrder] = []
+    var roomServiceOrders: [RoomServiceOrder]
     
     init(id: UUID, hotelId: UUID, hotelName: String, hotelLocation: String, roomName: String, checkInDate: Date, checkOutDate: Date, guestName: String, guestEmail: String, totalPrice: Double, qrCodeData: String, status: BookingStatus, roomServiceOrders: [RoomServiceOrder] = []) {
         self.id = id

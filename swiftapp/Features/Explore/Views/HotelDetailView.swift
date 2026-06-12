@@ -47,18 +47,21 @@ struct HotelDetailView: View {
     
     private var headerSection: some View {
         ZStack(alignment: .bottomLeading) {
+            Image(viewModel.hotel.imageName)
+                .resizable()
+                .scaledToFill()
+                .frame(height: 280)
+                .clipped()
+            
             LinearGradient(
-                colors: [.indigo, .purple, .blue],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
+                colors: [.black.opacity(0.6), .clear, .black.opacity(0.3)],
+                startPoint: .bottom,
+                endPoint: .top
             )
             .frame(height: 280)
             
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Image(systemName: viewModel.hotel.imageName)
-                        .font(.largeTitle)
-                        .foregroundColor(.white.opacity(0.9))
                     Spacer()
                 }
             }

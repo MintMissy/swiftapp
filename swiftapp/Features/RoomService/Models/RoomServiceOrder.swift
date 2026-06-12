@@ -7,7 +7,7 @@ final class RoomServiceOrder: Identifiable, Hashable {
     var timestamp: Date
     
     @Relationship(deleteRule: .cascade)
-    var items: [RoomServiceOrderItem] = []
+    var items: [RoomServiceOrderItem]
     
     var totalPrice: Double
     var status: String

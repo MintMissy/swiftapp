@@ -10,7 +10,7 @@ struct ExploreMockData {
             rating: 4.8,
             reviewCount: 342,
             basePrice: 350.0,
-            imageName: "building.2.crop.left.filled.to.right",
+            imageName: "hotel_poznan",
             amenities: [.wifi, .pool, .spa, .gym, .parking, .breakfast, .ac],
             rooms: [
                 Room(
@@ -43,7 +43,7 @@ struct ExploreMockData {
             rating: 4.6,
             reviewCount: 198,
             basePrice: 280.0,
-            imageName: "house.and.flag.fill",
+            imageName: "hotel_kolegiacki",
             amenities: [.wifi, .breakfast, .parking, .petFriendly, .ac],
             rooms: [
                 Room(
@@ -76,7 +76,7 @@ struct ExploreMockData {
             rating: 4.9,
             reviewCount: 512,
             basePrice: 600.0,
-            imageName: "tent.2.fill",
+            imageName: "hotel_sopot",
             amenities: [.wifi, .pool, .spa, .gym, .breakfast, .parking, .ac],
             rooms: [
                 Room(
@@ -99,7 +99,7 @@ struct ExploreMockData {
             rating: 4.7,
             reviewCount: 276,
             basePrice: 420.0,
-            imageName: "mountain.2.fill",
+            imageName: "hotel_zakopane",
             amenities: [.wifi, .spa, .parking, .breakfast, .petFriendly],
             rooms: [
                 Room(

@@ -141,17 +141,11 @@ struct FeaturedHotelCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             ZStack(alignment: .topTrailing) {
-                LinearGradient(
-                    colors: [.indigo, .purple],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .frame(width: 240, height: 140)
-                
-                Image(systemName: hotel.imageName)
-                    .font(.system(size: 40))
-                    .foregroundColor(.white.opacity(0.85))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                Image(hotel.imageName)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 240, height: 140)
+                    .clipped()
                 
                 HStack(spacing: 4) {
                     Image(systemName: "star.fill")
@@ -207,16 +201,11 @@ struct HotelRowView: View {
     var body: some View {
         HStack(spacing: 16) {
             ZStack {
-                LinearGradient(
-                    colors: [.blue, .purple],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .frame(width: 80, height: 80)
-                
-                Image(systemName: hotel.imageName)
-                    .font(.title2)
-                    .foregroundColor(.white.opacity(0.85))
+                Image(hotel.imageName)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 80, height: 80)
+                    .clipped()
             }
             .cornerRadius(12)
             
