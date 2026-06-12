@@ -13,7 +13,7 @@ class BookingService: ObservableObject {
     
     private let repository: BookingRepositoryProtocol
     
-    init(repository: BookingRepositoryProtocol = UserDefaultsBookingRepository()) {
+    init(repository: BookingRepositoryProtocol) {
         self.repository = repository
         self.bookings = repository.loadBookings()
     }

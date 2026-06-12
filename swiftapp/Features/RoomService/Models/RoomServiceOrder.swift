@@ -1,9 +1,22 @@
 import Foundation
+import SwiftData
 
-struct RoomServiceOrder: Identifiable, Codable, Hashable {
-    let id: UUID
-    let timestamp: Date
-    let items: [RoomServiceOrderItem]
-    let totalPrice: Double
-    let status: String
+@Model
+final class RoomServiceOrder: Identifiable, Hashable {
+    var id: UUID
+    var timestamp: Date
+    
+    @Relationship(deleteRule: .cascade)
+    var items: [RoomServiceOrderItem] = []
+    
+    var totalPrice: Double
+    var status: String
+    
+    init(id: UUID, timestamp: Date, items: [RoomServiceOrderItem], totalPrice: Double, status: String) {
+        self.id = id
+        self.timestamp = timestamp
+        self.items = items
+        self.totalPrice = totalPrice
+        self.status = status
+    }
 }

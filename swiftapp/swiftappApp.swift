@@ -7,17 +7,27 @@
 
 import SwiftUI
 
+import SwiftData
+
 @main
 struct swiftappApp: App {
+    let container: ModelContainer
+    
     init() {
-        let bookingRepository = UserDefaultsBookingRepository()
-        let bookingService = BookingService(repository: bookingRepository)
-        ServiceLocator.shared.register(bookingService)
+        do {
+            container = try ModelContainer(for: Booking.self, RoomServiceOrder.self, RoomServiceOrderItem.self)
+            let bookingRepository = SwiftDataBookingRepository(modelContext: container.mainContext)
+            let bookingService = BookingService(repository: bookingRepository)
+            ServiceLocator.shared.register(bookingService)
+        } catch {
+            fatalError("Failed to initialize SwiftData ModelContainer: \(error)")
+        }
     }
     
     var body: some Scene {
         WindowGroup {
             MainTabView()
         }
+        .modelContainer(container)
     }
 }
