@@ -28,8 +28,13 @@ class SwiftDataBookingRepository: BookingRepositoryProtocol {
     }
     
     func saveBookings(_ bookings: [Booking]) {
-        // SwiftData automatically saves changes when modelContext.save() is called.
-        // We only need to call save() explicitly if we want to force a write.
+        // Insert any new bookings that are not yet managed by a context
+        for booking in bookings {
+            if booking.modelContext == nil {
+                modelContext.insert(booking)
+            }
+        }
+        
         do {
             try modelContext.save()
         } catch {

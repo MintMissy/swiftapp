@@ -11,12 +11,16 @@ class MainTabViewModel: ObservableObject {
         self.bookingService = ServiceLocator.shared.resolve()
         
         bookingService.$selectedTab
+            .removeDuplicates()
             .assign(to: &$selectedTab)
             
         $selectedTab
             .dropFirst()
+            .removeDuplicates()
             .sink { [weak self] newTab in
-                self?.bookingService.selectedTab = newTab
+                if self?.bookingService.selectedTab != newTab {
+                    self?.bookingService.selectedTab = newTab
+                }
             }
             .store(in: &cancellables)
     }
